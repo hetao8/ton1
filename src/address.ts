@@ -7,6 +7,7 @@ import {
   keyPairFromSecretKey,
 } from '@ton/crypto';
 import { WalletContractV4, WalletContractV5R1 } from '@ton/ton';
+import { ed25519_getDerivedPrivateKey } from './hd-utils/ed25519';
 
 export class TonAccountRestore {
   /**
@@ -117,4 +118,13 @@ export class TonAccountRestore {
       throw new Error(`地址生成失败: ${error}`);
     }
   }
+
+  static getDerivedPath(index: number) {
+    return `m/44'/607'/${index}'`;
+  }
+
+  static async getDerivedPrivateKey(mnemonic: string, hdIndex: number): Promise<string> {
+    return ed25519_getDerivedPrivateKey(mnemonic, this.getDerivedPath(hdIndex));
+  }
+  
 }

@@ -9,22 +9,24 @@ async function main() {
   try {
     // Create Client
     const client = new TonClient({
-      // endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-      // apiKey: '802a084382453a012dce0386fae0deee61942f90da8a6bb625d162784874c3d7',
-      endpoint: "https://rpc.ankr.com/http/ton_api_v2"
+      endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+      apiKey: '802a084382453a012dce0386fae0deee61942f90da8a6bb625d162784874c3d7',
+      // endpoint: "https://rpc.ankr.com/http/ton_api_v2"
     });
-    const mnemonics: string[] = [];
-    const privateKey = '';
+    const mnemonics: string[] = ["reward", "speed", "winner", "perfect", "liquid", "century", "liberty", "vendor", "sun", "quality", "draw", "silver"]
+    const mnemonic = "reward speed winner perfect liquid century liberty vendor sun quality draw silver";
+    const res = await TonAccountRestore.getDerivedPrivateKey(mnemonic,0)
+    console.log('res:', res)
     // let mnemonics = await mnemonicNew();
-    let keyPair = await TonAccountRestore.restoreFromPrivateKey(privateKey);
+    // let keyPair = await TonAccountRestore.restoreFromPrivateKey(privateKey);
 
-    let workchain = 0; // ton所在的工作链
-    let wallet = WalletContractV4.create({ workchain, publicKey: keyPair.publicKey });
-    let contract = client.open(wallet);
+    // let workchain = 0; // ton所在的工作链
+    // let wallet = WalletContractV4.create({ workchain, publicKey: keyPair.publicKey });
+    // let contract = client.open(wallet);
 
-    // Get balance
-    let balance: bigint = await contract.getBalance();
-    console.log('Balance:', balance);
+    // // Get balance
+    // let balance: bigint = await contract.getBalance();
+    // console.log('Balance:', balance);
     /*
     // Create a transfer
     let seqno: number = await contract.getSeqno();
@@ -45,4 +47,4 @@ async function main() {
 }
 
 
-
+main()
