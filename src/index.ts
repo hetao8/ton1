@@ -1,9 +1,12 @@
 import {
+  Address,
   WalletContractV4,
 } from '@ton/ton';
 import { TonAccountRestore } from './address';
 
 import { TonClient } from '@ton/ton';
+import { hexToBase64 } from './parse/base64-convert';
+import { parseMessageBody } from './parse/parseMessageBody';
 
 async function main() {
   try {
@@ -15,8 +18,30 @@ async function main() {
     });
     const mnemonics: string[] = ["reward", "speed", "winner", "perfect", "liquid", "century", "liberty", "vendor", "sun", "quality", "draw", "silver"]
     const mnemonic = "reward speed winner perfect liquid century liberty vendor sun quality draw silver";
-    const res = await TonAccountRestore.getDerivedPrivateKey(mnemonic,0)
-    console.log('res:', res)
+
+    // const masterChain = await client.getMasterchainInfo()
+    // console.log(masterChain)
+    // const res = await client.getWorkchainShards(masterChain.latestSeqno)
+    // console.log(res)
+    // const txs = await client.getShardTransactions(res[0].workchain, res[0].seqno, res[0].shard)
+    // console.log(txs[0])
+
+    const res = await client.getTransaction(Address.parse("EQDlzeq0SUI-CleKAAffzHWO89W6d1i2aMDxgOFb6FSEhoN8"), "51361215000001", hexToBase64("94e9042e5d835d6bb20052887f728565cd8f57dabeb46b785fdd5d76498bb0a4"))
+    console.log("1 :",parseMessageBody(res?.inMessage!.body!))
+    // console.log("2 :",await handleJettonTransfer(res!))
+
+
+    // console.log(await handleJettonTransfer(res!))
+    // const res = await client.getTransactions(Address.parse("UQBFZGGiW_gheObFdKyQRZjkhY0htM2oMiehh0MIrY1Ywoy1"), {
+    //   limit: 10
+    // })
+
+    // res.forEach((item) => {
+    //   console.log("hex: ",item.hash().toString('hex'))
+    //   console.log("base64: ",item.hash().toString('base64'))
+    //   console.log(item)
+    // })
+
     // let mnemonics = await mnemonicNew();
     // let keyPair = await TonAccountRestore.restoreFromPrivateKey(privateKey);
 
