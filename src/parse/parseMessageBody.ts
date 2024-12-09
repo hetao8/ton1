@@ -67,13 +67,26 @@ export type SupportedMessage =
         daily: bigint;
         monthly: bigint;
       };
-    };
+    }
+    | {
+        type: 'jetton::internal_transfer';
+        data: {
+          queryId: number | bigint;
+          amount: bigint;
+          from: Address;
+          responseAddress: Address;
+          forwardTonAmount: bigint;
+          forwardPayload: Cell | null;
+        };
+      };
 
 export enum OperationType {
   HoldersAccountTopUp = 0x59da2019,
   HoldersAccountLimitsChange = 0x2bc69c40,
   JettonExcesses = 0xd53276db,
   JettonTransfer = 0xf8a7ea5,
+  JettonInternalTransfer = 0x178d4519,
+  // 0x178d4519
   JettonTransferNotification = 0x7362d09c,
   WhalesStakingDeposit = crc32str('op::stake_deposit'),
   WhalesStakingDepositResponse = crc32str('op::stake_deposit::response'),
@@ -95,7 +108,7 @@ export function parseMessageBody(payload: Cell): SupportedMessage | null {
   if (op === 0) {
     return null;
   }
-
+  console.log("op: ",op)
   switch (op) {
     case OperationType.JettonExcesses: {
       let queryId = sc.loadUint(64);
@@ -147,6 +160,28 @@ export function parseMessageBody(payload: Cell): SupportedMessage | null {
         },
       };
     }
+    case OperationType.JettonInternalTransfer: {
+        let queryId = sc.loadUintBig(64);
+        let amount = sc.loadCoins();
+        let from = sc.loadAddress();
+        let responseAddress = sc.loadAddress();
+        let forwardTonAmount = sc.loadCoins();
+        let forwardPayload: Cell | null = null;
+        if (sc.remainingBits > 0) {
+          forwardPayload = sc.loadMaybeRef() ?? sc.asCell();
+        }
+        return {
+          type: 'jetton::internal_transfer',
+          data: {
+            queryId,
+            amount,
+            from,
+            responseAddress,
+            forwardTonAmount,
+            forwardPayload,
+          },
+        };
+      }
     case OperationType.WhalesStakingDeposit: {
       let queryId = sc.loadUintBig(64);
       let gasLimit = sc.loadCoins();

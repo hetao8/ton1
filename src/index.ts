@@ -7,27 +7,45 @@ import { TonAccountRestore } from './address';
 import { TonClient } from '@ton/ton';
 import { hexToBase64 } from './parse/base64-convert';
 import { parseMessageBody } from './parse/parseMessageBody';
-
+import { TonToken } from './token';
+const endpoint = 'https://toncenter.com/api/v2/jsonRPC';
+const apiKey = '802a084382453a012dce0386fae0deee61942f90da8a6bb625d162784874c3d7';
 async function main() {
   try {
     // Create Client
     const client = new TonClient({
-      endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-      apiKey: '802a084382453a012dce0386fae0deee61942f90da8a6bb625d162784874c3d7',
+      endpoint,
+      apiKey
+      // endpoint: 'http://localhost:80'
       // endpoint: "https://rpc.ankr.com/http/ton_api_v2"
     });
     const mnemonics: string[] = ["reward", "speed", "winner", "perfect", "liquid", "century", "liberty", "vendor", "sun", "quality", "draw", "silver"]
     const mnemonic = "reward speed winner perfect liquid century liberty vendor sun quality draw silver";
-
+    
     // const masterChain = await client.getMasterchainInfo()
     // console.log(masterChain)
     // const res = await client.getWorkchainShards(masterChain.latestSeqno)
     // console.log(res)
-    // const txs = await client.getShardTransactions(res[0].workchain, res[0].seqno, res[0].shard)
-    // console.log(txs[0])
+    // let txs: any[] = []
+    // for (let i = 0; i < res.length; i++) {
+    //   const shard = res[i];
+    //   const transactions = await client.getShardTransactions(shard.workchain, shard.seqno, shard.shard)
+    //   // console.log(transactions)
+    //   txs = txs.concat(transactions)
+    // }
+    // for (let i = 0; i < txs.length; i++) {
+    //   const tx = txs[i];
+    //   const res = await client.getTransaction(tx.account, tx.lt, tx.hash)
+    //   console.log(res)
+    // }
 
-    const res = await client.getTransaction(Address.parse("EQDlzeq0SUI-CleKAAffzHWO89W6d1i2aMDxgOFb6FSEhoN8"), "51361215000001", hexToBase64("94e9042e5d835d6bb20052887f728565cd8f57dabeb46b785fdd5d76498bb0a4"))
-    console.log("1 :",parseMessageBody(res?.inMessage!.body!))
+    // res.forEach(async(item) => {
+    //   await client.(item.workchain, item.seqno, item.shard, endpoint, apiKey)
+    // })
+
+    // const res = await client.getTransaction(Address.parse("EQCaue9JJr_TL1jsD5frETaC3_ew1-ducUr5Rv8JOCBfKiqQ"), "51588012000001", hexToBase64("84ddec95b3b108f3d7ad1afda8283e6ceefec3c81b3cbb01eac41b548eaf603f"))
+    // console.log("res: ",res?.inMessage!.body!.toString())
+    // console.log("1 :",parseMessageBody(res?.inMessage!.body!))
     // console.log("2 :",await handleJettonTransfer(res!))
 
 
@@ -66,6 +84,15 @@ async function main() {
       ],
     });
       */
+
+    const  privateKey = ""
+    const keyPair = await TonAccountRestore.restoreFromPrivateKey(privateKey);
+    const USDT_ADDRESS = "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+    const from = await TonAccountRestore.getWalletAddress(keyPair);
+    const to = ""
+    const amount = BigInt(100000)
+    const text = "test1"
+    await TonToken.transferJetton(client, USDT_ADDRESS, from, to, amount, keyPair, text)
   } catch (error) {
     console.error('Error sending transaction:', error);
   }

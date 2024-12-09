@@ -9,6 +9,7 @@ import {
   WalletContractV4,
   internal,
   SendMode,
+  Cell,
 } from '@ton/ton';
 import { generateQueryId, waitSeqno } from './utils';
 
@@ -20,22 +21,22 @@ export class TonToken {
     jettonMaster: string,
   ): Promise<string> {
     try {
-      const userAddressCell = beginCell()
-        .storeAddress(Address.parse(userAddress))
-        .endCell();
+      // const userAddressCell = beginCell()
+      //   .storeAddress(Address.parse(userAddress))
+      //   .endCell();
 
-      const response = await client.runMethod(
-        Address.parse(jettonMaster),
-        'get_wallet_address',
-        [{ type: 'slice', cell: userAddressCell }],
-      );
+      // const response = await client.runMethod(
+      //   Address.parse(jettonMaster),
+      //   'get_wallet_address',
+      //   [{ type: 'slice', cell: userAddressCell }],
+      // );
 
-      return response.stack.readAddress().toString();
+      // return response.stack.readAddress().toString();
 
-    //   const master = JettonMaster.create(Address.parse(jettonMaster));
-    //   const provider = client.provider(Address.parse(jettonMaster));
-    //   const walletAddress = await master.getWalletAddress(provider, Address.parse(userAddress));
-    //   return walletAddress.toString();
+      const master = JettonMaster.create(Address.parse(jettonMaster));
+      const provider = client.provider(Address.parse(jettonMaster));
+      const walletAddress = await master.getWalletAddress(provider, Address.parse(userAddress));
+      return walletAddress.toString();
     } catch (error) {
       console.error('Error getting Jetton wallet address:', error);
       throw error;
@@ -105,6 +106,7 @@ export class TonToken {
     toAddress: string,
     amount: bigint,
     userKeyPair: KeyPair,
+    memo: string,
   ) {
     try {
       const destAddress = Address.parse(toAddress);
@@ -121,16 +123,32 @@ export class TonToken {
         tokenAddress,
       );
 
-      const body = beginCell()
+      let body = beginCell()
         .storeUint(0xf8a7ea5, 32)
         .storeUint(generateQueryId(), 64)
         .storeCoins(amount)
         .storeAddress(destAddress) // to address
         .storeAddress(wallet.address) // response address
-        .storeMaybeRef(undefined)
-        .storeCoins(1) 
-        .storeBit(false)
-        .endCell();
+        .storeMaybeRef(undefined) // custom payload
+        .storeCoins(0); // forward ton amount
+      // .storeBit(false) // no memo
+
+      // .endCell();
+      let body2: Cell;
+      if (memo) {
+        const forwardPayload = beginCell()
+          .storeUint(0, 32) 
+          .storeStringTail(memo)
+          .endCell();
+
+        body2 = body
+          .storeBit(true)
+          .storeRef(forwardPayload)
+          .endCell();
+      } else {
+        body2 = body.storeBit(false).endCell();
+      }
+
       const seqno: number = await contract.getSeqno();
 
       const myTransaction = {
@@ -141,16 +159,20 @@ export class TonToken {
             to: jettonWallet,
             value: BigInt(100000000), // 0.1 TON
             bounce: false,
-            body: body,
+            body: body2,
           }),
         ],
         sendMode: SendMode.PAY_GAS_SEPARATELY,
-        value: '100000000',
       };
 
       await contract.sendTransfer(myTransaction);
 
-      await waitSeqno(seqno, contract);
+      const res = await waitSeqno(seqno, contract);
+      if (res) {
+        console.log('Transaction succeeded');
+      } else {
+        console.log('Transaction failed');
+      }
     } catch (error) {
       console.error('Error transferring Jettons:', error);
       throw error;
