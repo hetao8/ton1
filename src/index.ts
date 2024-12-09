@@ -19,8 +19,8 @@ async function main() {
       // endpoint: 'http://localhost:80'
       // endpoint: "https://rpc.ankr.com/http/ton_api_v2"
     });
-    const mnemonics: string[] = ["reward", "speed", "winner", "perfect", "liquid", "century", "liberty", "vendor", "sun", "quality", "draw", "silver"]
-    const mnemonic = "reward speed winner perfect liquid century liberty vendor sun quality draw silver";
+    // const mnemonics: string[] = ["reward", "speed", "winner", "perfect", "liquid", "century", "liberty", "vendor", "sun", "quality", "draw"]
+    const mnemonic = "learn sweet clown bus tobacco coin fatal strike prepare tumble denial light swap adult fury virus tuition super soldier trust small endorse south";
     
     // const masterChain = await client.getMasterchainInfo()
     // console.log(masterChain)
@@ -86,7 +86,8 @@ async function main() {
       */
 
     const  privateKey = ""
-    const keyPair = await TonAccountRestore.restoreFromPrivateKey(privateKey);
+    // const keyPair = await TonAccountRestore.restoreFromPrivateKey(privateKey);
+    const keyPair = await TonAccountRestore.restoreFromMnemonic(mnemonic);
     const USDT_ADDRESS = "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
     const from = await TonAccountRestore.getWalletAddress(keyPair);
     const to = ""

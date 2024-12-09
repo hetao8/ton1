@@ -15,7 +15,7 @@ export class TonAccountRestore {
    * @param mnemonic 助记词数组
    * @returns 密钥对
    */
-  static async restoreFromMnemonic(mnemonic: string[]): Promise<KeyPair> {
+  static async restoreFromMnemonics(mnemonic: string[]): Promise<KeyPair> {
     try {
       // 验证助记词
       const isValid = await mnemonicValidate(mnemonic);
@@ -27,6 +27,21 @@ export class TonAccountRestore {
       throw new Error(`助记词转换失败: ${error}`);
     }
   }
+
+  static async restoreFromMnemonic(mnemonicString: string): Promise<KeyPair> {
+    try {
+        const mnemonic = mnemonicString.trim().split(/\s+/).filter(word => word.length > 0);
+        
+        const isValid = await mnemonicValidate(mnemonic);
+        if (!isValid) {
+            throw new Error('Invalid mnemonic');
+        }
+        
+        return await mnemonicToWalletKey(mnemonic);
+    } catch (error) {
+        throw new Error(`助记词转换失败: ${error}`);
+    }
+}
 
   /**
    * 从私钥生成密钥对
