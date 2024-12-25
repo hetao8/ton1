@@ -21,22 +21,22 @@ export class TonToken {
     jettonMaster: string,
   ): Promise<string> {
     try {
-      // const userAddressCell = beginCell()
-      //   .storeAddress(Address.parse(userAddress))
-      //   .endCell();
+      const userAddressCell = beginCell()
+        .storeAddress(Address.parse(userAddress))
+        .endCell();
 
-      // const response = await client.runMethod(
-      //   Address.parse(jettonMaster),
-      //   'get_wallet_address',
-      //   [{ type: 'slice', cell: userAddressCell }],
-      // );
+      const response = await client.runMethod(
+        Address.parse(jettonMaster),
+        'get_wallet_address',
+        [{ type: 'slice', cell: userAddressCell }],
+      );
 
-      // return response.stack.readAddress().toString();
+      return response.stack.readAddress().toString();
 
-      const master = JettonMaster.create(Address.parse(jettonMaster));
-      const provider = client.provider(Address.parse(jettonMaster));
-      const walletAddress = await master.getWalletAddress(provider, Address.parse(userAddress));
-      return walletAddress.toString();
+      // const master = JettonMaster.create(Address.parse(jettonMaster));
+      // const provider = client.provider(Address.parse(jettonMaster));
+      // const walletAddress = await master.getWalletAddress(provider, Address.parse(userAddress));
+      // return walletAddress.toString();
     } catch (error) {
       console.error('Error getting Jetton wallet address:', error);
       throw error;
@@ -136,15 +136,9 @@ export class TonToken {
       // .endCell();
       let body2: Cell;
       if (memo) {
-        const forwardPayload = beginCell()
-          .storeUint(0, 32) 
-          .storeStringTail(memo)
-          .endCell();
+        const forwardPayload = beginCell().storeUint(0, 32).storeStringTail(memo).endCell();
 
-        body2 = body
-          .storeBit(true)
-          .storeRef(forwardPayload)
-          .endCell();
+        body2 = body.storeBit(true).storeRef(forwardPayload).endCell();
       } else {
         body2 = body.storeBit(false).endCell();
       }
@@ -165,14 +159,29 @@ export class TonToken {
         sendMode: SendMode.PAY_GAS_SEPARATELY,
       };
 
-      await contract.sendTransfer(myTransaction);
+      // await contract.sendTransfer(myTransaction);
 
-      const res = await waitSeqno(seqno, contract);
-      if (res) {
-        console.log('Transaction succeeded');
-      } else {
-        console.log('Transaction failed');
-      }
+      const transferCell = contract.createTransfer(myTransaction);
+
+      const externalMessage = beginCell()
+        .storeUint(0b10, 2) // ext_in_msg_info$10 标记
+        .storeUint(0, 2) // src = addr_none
+        .storeAddress(contract.address) // dst address
+        .storeCoins(0) // import_fee
+        .storeBit(0) // no init
+        .storeBit(1) // 有 body
+        .storeRef(transferCell) // body
+        .endCell();
+
+      // 3. 序列化成 boc
+      const boc = externalMessage.toBoc().toString('base64');
+      console.log('boc:', boc);
+      // const res = await waitSeqno(seqno, contract);
+      // if (res) {
+      //   console.log('Transaction succeeded');
+      // } else {
+      //   console.log('Transaction failed');
+      // }
     } catch (error) {
       console.error('Error transferring Jettons:', error);
       throw error;
