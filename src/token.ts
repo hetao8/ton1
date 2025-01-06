@@ -130,7 +130,7 @@ export class TonToken {
         .storeAddress(destAddress) // to address
         .storeAddress(wallet.address) // response address
         .storeMaybeRef(undefined) // custom payload
-        .storeCoins(0); // forward ton amount
+        .storeCoins(1); // forward ton amount
       // .storeBit(false) // no memo
 
       // .endCell();
@@ -174,8 +174,12 @@ export class TonToken {
         .endCell();
 
       // 3. 序列化成 boc
+      const res2 = externalMessage.hash()
+      console.log('hash:', res2.toString('hex'));
       const boc = externalMessage.toBoc().toString('base64');
-      console.log('boc:', boc);
+      console.log('boc:', boc);          // Decode base64 BOC to Cell
+      const cell = Cell.fromBoc(Buffer.from(boc, 'base64'))[0];
+      console.log('boc2hash',cell.hash().toString('hex'))
       // const res = await waitSeqno(seqno, contract);
       // if (res) {
       //   console.log('Transaction succeeded');
